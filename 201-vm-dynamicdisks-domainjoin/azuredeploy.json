@@ -130,7 +130,7 @@
   },
   "variables": {
 
-    "artifactsLocation": "https://github.com/pbuiMSFT/201-VM-DomainJoin-DynamicDisks/blob/master/",
+    "artifactsLocation": "https://github.com/pbuiMSFT/azure-quickstart-templates/blob/master/201-vm-dynamicdisks-domainjoin/",
     "storageAccountName": "armgendemo01",
     "sizeOfDataDisksInGB": 1023,
     "diskCaching": "ReadWrite",
