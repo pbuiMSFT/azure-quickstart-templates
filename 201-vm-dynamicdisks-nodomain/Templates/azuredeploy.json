@@ -34,33 +34,6 @@
         "description": "Password for the Virtual Machine."
       }
     },
-    "domainToJoin": {
-      "type": "string",
-      "defaultValue": "fobnetworks.com",
-      "metadata": {
-        "description": "The FQDN of the AD domain"
-      }
-    },
-    "domainUsername": {
-      "type": "string",
-      "defaultValue": "xaadmin",
-      "metadata": {
-        "description": "Username of the account on the domain"
-      }
-    },
-    "domainPassword": {
-      "type": "securestring",
-      "metadata": {
-        "description": "Password of the account on the domain"
-      }
-    },
-    "domainJoinOptions": {
-      "type": "int",
-      "defaultValue": 3,
-      "metadata": {
-        "description": "Set of bit flags that define the join options. Default value of 3 is a combination of NETSETUP_JOIN_DOMAIN (0x00000001) & NETSETUP_ACCT_CREATE (0x00000002) i.e. will join the domain and create the account on the domain. For more information see https://msdn.microsoft.com/en-us/library/aa392154(v=vs.85).aspx"
-      }
-    },
     "vmSize": {
       "defaultValue": "Standard_A3",
       "type": "string",
@@ -84,43 +57,14 @@
         "description": "This is the size of your VM"
       }
     },
-    "existingVnetName": {
-      "defaultValue": "Vnet-Hess-Prod-SCUS01",
-      "type": "string",
-      "allowedValues": [
-        "Vnet-Hess-Prod-SCUS01",
-        "fobnet_arm_citrixdemo_vnet"
-      ],
-      "metadata": {
-        "description": "Existing Virtual Network Name"
-      }
-    },
-    "subnetName": {
-      "defaultValue": "sb-prod-core01",
-      "type": "string",
-      "allowedValues": [
-        "sb-prod-core01",
-        "Public",
-        "Private"
-      ],
-      "metadata": {
-        "description": "This is the size of your VM"
-      }
-    },
     "storageAccountName": {
       "defaultValue": "pbuitemplatetest",
       "type": "String",
-      "allowedValues": [
-        "pbuitemplatetest",
-        "armtestscuslrs01",
-        "armtestscuslrs02"
-      ],
       "metadata": {
         "description": "The storage account name to place the VM os and datadisks"
       }
     },
     "numDataDisks": {
-      "defaultValue": "1",
       "allowedValues": [
         "1",
         "2",
@@ -159,8 +103,10 @@
     "nicName": "[concat(parameters('vmNamePrefix'),'-nic01')]",
     "publicIPAddressName": "[concat(parameters('vmNamePrefix'),'-pip')]",
     "publicIPAddressType": "Dynamic",
-    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('existingVNetName'))]",
-    "subnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('subnetName'))]",
+    "existingVNetName": "Vnet-Hess-Prod-SCUS01",
+    "subnetName": "sb-prod-core01",
+    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('existingVNetName'))]",
+    "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
     "apiVersion": "2015-06-15"
   },
   "resources": [
@@ -286,29 +232,6 @@
         "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]",
         "[concat('Microsoft.Resources/deployments/', 'diskSelection')]"
       ]
-    },
-    {
-      "apiVersion": "[variables('apiVersion')]",
-      "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(parameters('vmNamePrefix'),'/joindomain')]",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmNamePrefix'))]"
-      ],
-      "properties": {
-        "publisher": "Microsoft.Compute",
-        "type": "JsonADDomainExtension",
-        "typeHandlerVersion": "1.0",
-        "settings": {
-          "Name": "[parameters('domainToJoin')]",
-          "User": "[concat(parameters('domainToJoin'), '\\', parameters('domainUsername'))]",
-          "Restart": "true",
-          "Options": "[parameters('domainJoinOptions')]"
-        },
-        "protectedsettings": {
-          "Password": "[parameters('domainPassword')]"
-        }
-      }
     }
   ]
 }

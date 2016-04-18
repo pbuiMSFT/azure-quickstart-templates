@@ -135,7 +135,7 @@
     "location": "[resourceGroup().location]",
     "existingVNetName": "ARM_GEN_DEMO_VNET",
     "virtualNetworkResourceGroup": "ARM_GEN_DEMO",
-    "vnetID": "[resourceId(variables('virtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('existingVNetName'))]",
+    "vnetID": "[resourceId(variables('virtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', variables('existingVNetName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/', parameters('subnetName'))]",
     "imagePublisher": "MicrosoftWindowsServer",
     "imageOffer": "WindowsServer",
@@ -181,7 +181,7 @@
     {
       "apiVersion": "[variables('apiVersion')]",
       "type": "Microsoft.Network/virtualNetworks/subnets",
-      "name": "[concat(parameters('existingVNetName'), '/', parameters('subnetName'))]",
+      "name": "[concat(variables('existingVNetName'), '/', parameters('subnetName'))]",
       "location": "[variables('location')]",
       "properties": {
         "addressPrefix": "[variables('subnetPrefix')]"
