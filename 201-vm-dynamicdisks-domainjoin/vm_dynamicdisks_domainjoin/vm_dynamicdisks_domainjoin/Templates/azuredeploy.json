@@ -92,8 +92,7 @@
     }
   },
   "variables": {
-    //"artifactsLocation": "https://raw.githubusercontent.com/singhkay/azure-quickstart-templates/master/201-vm-dynamic-data-disks-selection/",
-    "artifactsLocation": "https: //github.com/pbuiMSFT/azure-quickstart-templates/blob/master/201-vm-dynamicdisks-domainjoin/",
+    "artifactsLocation": "https://raw.githubusercontent.com/pbuiMSFT/azure-quickstart-templates/master/201-vm-dynamicdisks-domainjoin/vm_dynamicdisks_domainjoin/vm_dynamicdisks_domainjoin/Templates/",
     "sizeOfDataDisksInGB": 1023,
     "vmStorageAccountContainerName": "vhds",
     "diskCaching": "ReadWrite",
@@ -122,6 +121,9 @@
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
+          "vmName": {
+            "value": "[parameters('vmNamePrefix')]"
+          },
           "numDataDisks": {
             "value": "[parameters('numDataDisks')]"
           },
