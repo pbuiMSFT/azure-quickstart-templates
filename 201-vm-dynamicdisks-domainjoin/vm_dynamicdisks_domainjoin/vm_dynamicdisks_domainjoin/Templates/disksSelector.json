@@ -589,6 +589,7 @@
       ],
       "43": [
         {
+          "name": "[concat(parameters('vmName'),'-datadisk43.vhd')]",
           "lun": 42,xxxxxxxxxxxxxxxxxxxxxxx
           "vhd": {
             "uri": "[concat('http://', parameters('diskStorageAccountName'),'.blob.core.windows.net/vhds/',parameters('vmName'), '-datadisk43.vhd')]"
