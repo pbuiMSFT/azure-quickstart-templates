@@ -219,7 +219,7 @@
       "properties": {
         "ipConfigurations": [
           {
-            "name": "ipconfig1",
+            "name": "[concat(parameters('vmNamePrefix'),'-ipconfig')]",
             "properties": {
               "privateIPAllocationMethod": "Dynamic",
               "publicIPAddress": {
