@@ -1,12 +1,365 @@
 ﻿{
-    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "windowsOSVersion": {
+      "defaultValue": "2012-R2-Datacenter",
+      "allowedValues": [
+        "2008-R2-SP1",
+        "2012-Datacenter",
+        "2012-R2-Datacenter"
+      ],
+      "type": "String",
+      "metadata": {
+        "description": "The Windows version for the VM. This will pick a fully patched image of this given Windows version. Allowed values: 2008-R2-SP1, 2012-Datacenter, 2012-R2-Datacenter."
+      }
     },
-    "variables": {
+    "scriptName": {
+      "defaultValue": "windows2012r2.ps1",
+      "allowedValues": [
+        "windows2008r2.ps1",
+        "windows2012.ps1",
+        "windows2012r2.ps1"
+      ],
+      "type": "String",
+      "metadata": {
+        "description": "The Windows version for the VM. This will pick a fully patched image of this given Windows version. Allowed values: 2008-R2-SP1, 2012-Datacenter, 2012-R2-Datacenter."
+      }
     },
-    "resources": [
-    ],
-    "outputs": {
+    "vmNamePrefix": {
+      "defaultValue": "pbuitest06",
+      "type": "String",
+      "metadata": {
+        "description": "Unique DNS Name for the Public IP used to access the Virtual Machine."
+      }
+    },
+    "adminUsername": {
+      "defaultValue": "xaadmin",
+      "type": "String",
+      "metadata": {
+        "description": "Username for the Virtual Machine."
+      }
+    },
+    "adminPassword": {
+      "type": "SecureString",
+      "metadata": {
+        "description": "Password for the Virtual Machine."
+      }
+    },
+    "domainToJoin": {
+      "type": "string",
+      "defaultValue": "fobnetworks.com",
+      "metadata": {
+        "description": "The FQDN of the AD domain"
+      }
+    },
+    "domainUsername": {
+      "type": "string",
+      "defaultValue": "xaadmin",
+      "metadata": {
+        "description": "Username of the account on the domain"
+      }
+    },
+    "domainPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password of the account on the domain"
+      }
+    },
+    "domainJoinOptions": {
+      "type": "int",
+      "defaultValue": 3,
+      "metadata": {
+        "description": "Set of bit flags that define the join options. Default value of 3 is a combination of NETSETUP_JOIN_DOMAIN (0x00000001) & NETSETUP_ACCT_CREATE (0x00000002) i.e. will join the domain and create the account on the domain. For more information see https://msdn.microsoft.com/en-us/library/aa392154(v=vs.85).aspx"
+      }
+    },
+    "vmSize": {
+      "defaultValue": "Standard_D2",
+      "type": "string",
+      "allowedValues": [
+        "Standard_A3",
+        "Standard_A4",
+        "Standard_A5",
+        "Standard_A6",
+        "Standard_A7",
+        "Standard_A8",
+        "Standard_A9",
+        "Standard_A10",
+        "Standard_A11",
+        "Standard_D2",
+        "Standard_D3",
+        "Standard_D4",
+        "Standard_D12",
+        "Standard_D13",
+        "Standard_D14"
+      ],
+      "metadata": {
+        "description": "This is the size of your VM"
+      }
+    },
+    "existingVnetName": {
+      "defaultValue": "Vnet-Hess-Prod-SCUS01",
+      "type": "string",
+      "allowedValues": [
+        "Vnet-Hess-Prod-SCUS01",
+        "fobnet_arm_citrixdemo_vnet"
+      ],
+      "metadata": {
+        "description": "Existing Virtual Network Name"
+      }
+    },
+    "subnetName": {
+      "defaultValue": "sb-prod-core01",
+      "type": "string",
+      "allowedValues": [
+        "sb-prod-core01",
+        "Public",
+        "Private"
+      ],
+      "metadata": {
+        "description": "This is the size of your VM"
+      }
+    },
+    "storageAccountName": {
+      "defaultValue": "pbuitemplatetest",
+      "type": "String",
+      "allowedValues": [
+        "pbuitemplatetest",
+        "armtestscuslrs01",
+        "armtestscuslrs02"
+      ],
+      "metadata": {
+        "description": "The storage account name to place the VM os and datadisks"
+      }
+    },
+    "numDataDisks": {
+      "defaultValue": "1",
+      "allowedValues": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "32",
+        "64"
+      ],
+      "type": "String",
+      "metadata": {
+        "description": "This parameter allows the user to select the number of disks they want"
+      }
     }
+  },
+  "variables": {
+    "apiVersion": "2015-06-15",
+    "artifactsLocation": "https://raw.githubusercontent.com/pbuiMSFT/azure-quickstart-templates/master/201-vm-dynamicdisks-domainjoin/vm_dynamicdisks_domainjoin/vm_dynamicdisks_domainjoin/Templates/",
+    "sizeOfDataDisksInGB": 1023,
+    "vmStorageAccountContainerName": "vhds",
+    "diskCaching": "ReadWrite",
+    "location": "[resourceGroup().location]",
+    "imagePublisher": "MicrosoftWindowsServer",
+    "imageOffer": "WindowsServer",
+    "OSDiskName": "[concat(parameters('vmNamePrefix'),'-osdisk')]",
+    "nicName": "[concat(parameters('vmNamePrefix'),'-nic01')]",
+    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('existingVNetName'))]",
+    "subnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('subnetName'))]",
+    "windosOSVersionCustomScriptFile": {
+      "2008-R2-SP1": {
+        "scriptfileUri": "https://raw.githubusercontent.com/pbuiMSFT/azure-quickstart-templates/master/201-vm-dynamicdisks-domainjoin/vm_dynamicdisks_domainjoin/vm_dynamicdisks_domainjoin/Templates/windows2008r2.ps1",
+        "scriptfileName": "windows2008r2.ps1"
+      },
+      "2012-Datacenter": {
+        "scriptfileUri": "https://raw.githubusercontent.com/pbuiMSFT/azure-quickstart-templates/master/201-vm-dynamicdisks-domainjoin/vm_dynamicdisks_domainjoin/vm_dynamicdisks_domainjoin/Templates/windows2012.ps1",
+        "scriptfileName": "windows2012.ps1"
+      },
+      "2012-R2-Datacenter": {
+        "scriptfileUri": "https://raw.githubusercontent.com/pbuiMSFT/azure-quickstart-templates/master/201-vm-dynamicdisks-domainjoin/vm_dynamicdisks_domainjoin/vm_dynamicdisks_domainjoin/Templates/windows2012r2.ps1",
+        "scriptfileName": "windows2012r2.ps1"
+      }
+    },
+    "currentOSSettings": "[variables('windosOSVersionCustomScriptFile')[parameters('windowsOSVersion')]]",
+    "scriptfileUri": "[variables('currentOSSettings').scriptfileUri]",
+    "scriptfileName": "[variables('currentOSSettings').scriptfileName]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "diskSelection",
+      "apiVersion": "2015-01-01",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('artifactsLocation'), 'disksSelector', '.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vmName": {
+            "value": "[parameters('vmNamePrefix')]"
+          },
+          "numDataDisks": {
+            "value": "[parameters('numDataDisks')]"
+          },
+          "diskStorageAccountName": {
+            "value": "[parameters('storageAccountName')]"
+          },
+          "diskCaching": {
+            "value": "[variables('diskCaching')]"
+          },
+          "diskSizeGB": {
+            "value": "[variables('sizeOfDataDisksInGB')]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[parameters('storageAccountName')]",
+      "apiVersion": "[variables('apiVersion')]",
+      "location": "[resourceGroup().location]"
+    },
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('nicName')]",
+      "apiVersion": "[variables('apiVersion')]",
+      "location": "[variables('location')]",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "[concat(parameters('vmNamePrefix'),'-ipconfig')]",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('subnetRef')]"
+              }
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[parameters('vmNamePrefix')]",
+      "apiVersion": "[variables('apiVersion')]",
+      "location": "[variables('location')]",
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('vmNamePrefix')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('imagePublisher')]",
+            "offer": "[variables('imageOffer')]",
+            "sku": "[parameters('windowsOSVersion')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "[variables('OSDiskName')]",
+            "vhd": {
+              "uri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('OSDiskName'),'.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          },
+          "dataDisks": "[reference('diskSelection').outputs.dataDiskArray.value]"
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": "true",
+            "storageUri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net')]"
+          }
+        }
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]",
+        "[concat('Microsoft.Resources/deployments/', 'diskSelection')]"
+      ]
+    },
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('vmNamePrefix'),'/joindomain')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmNamePrefix'))]"
+
+      ],
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "JsonADDomainExtension",
+        "typeHandlerVersion": "1.0",
+        "settings": {
+          "Name": "[parameters('domainToJoin')]",
+          "User": "[concat(parameters('domainToJoin'), '\\', parameters('domainUsername'))]",
+          "Restart": "true",
+          "Options": "[parameters('domainJoinOptions')]"
+        },
+        "protectedsettings": {
+          "Password": "[parameters('domainPassword')]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('vmNamePrefix'),'/CustomScriptExtension')]",
+      "apiVersion": "2015-05-01-preview",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/',parameters('vmNamePrefix'))]",
+        "[concat('Microsoft.Compute/virtualMachines/',parameters('vmNamePrefix'),'/extensions/joindomain')]",
+        "[concat('Microsoft.Compute/virtualMachines/',parameters('vmNamePrefix'),'/extensions/Symantec')]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "CustomScriptExtension",
+        "typeHandlerVersion": "1.4",
+        "settings": {
+          "fileUris": [
+            "https://raw.githubusercontent.com/pbuiMSFT/azure-quickstart-templates/master/201-vm-dynamicdisks-domainjoin/vm_dynamicdisks_domainjoin/vm_dynamicdisks_domainjoin/Templates/windows2012r2.ps1"
+          ],
+          "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File windows2012r2.ps1"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('vmNamePrefix'),'/Symantec')]",
+      "apiVersion": "2015-05-01-preview",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmNamePrefix'))]"
+      ],
+      "properties": {
+        "publisher": "Symantec",
+        "type": "SymantecEndpointProtection",
+        "typeHandlerVersion": "12.1",
+        "settings": null,
+        "protectedSettings": null
+      }
+    }
+  ]
 }

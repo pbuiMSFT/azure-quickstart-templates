@@ -3,28 +3,16 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "windowsOSVersion": {
-      "defaultValue": "2012-R2-Datacenter",
+      "type": "String",
+      "metadata": {
+        "description": "The Windows version for the VM. This will pick a fully patched image of this given Windows version. Allowed values: 2008-R2-SP1, 2012-Datacenter, 2012-R2-Datacenter."
+      },
       "allowedValues": [
         "2008-R2-SP1",
         "2012-Datacenter",
         "2012-R2-Datacenter"
       ],
-      "type": "String",
-      "metadata": {
-        "description": "The Windows version for the VM. This will pick a fully patched image of this given Windows version. Allowed values: 2008-R2-SP1, 2012-Datacenter, 2012-R2-Datacenter."
-      }
-    },
-    "scriptName": {
-      "defaultValue": "windows2012r2.ps1",
-      "allowedValues": [
-        "windows2008r2.ps1",
-        "windows2012.ps1",
-        "windows2012r2.ps1"
-      ],
-      "type": "String",
-      "metadata": {
-        "description": "The Windows version for the VM. This will pick a fully patched image of this given Windows version. Allowed values: 2008-R2-SP1, 2012-Datacenter, 2012-R2-Datacenter."
-      }
+      "defaultValue": "2012-R2-Datacenter"
     },
     "vmNamePrefix": {
       "defaultValue": "pbuitest06",
@@ -98,7 +86,7 @@
       }
     },
     "existingVnetName": {
-      "defaultValue": "Vnet-Hess-Prod-SCUS01",
+      "defaultValue": "fobnet_arm_citrixdemo_vnet",
       "type": "string",
       "allowedValues": [
         "Vnet-Hess-Prod-SCUS01",
@@ -109,7 +97,7 @@
       }
     },
     "subnetName": {
-      "defaultValue": "sb-prod-core01",
+      "defaultValue": "Private",
       "type": "string",
       "allowedValues": [
         "sb-prod-core01",
@@ -121,7 +109,7 @@
       }
     },
     "storageAccountName": {
-      "defaultValue": "pbuitemplatetest",
+      "defaultValue": "armtestscuslrs02",
       "type": "String",
       "allowedValues": [
         "pbuitemplatetest",
@@ -161,19 +149,35 @@
     }
   },
   "variables": {
+    "apiVersion": "2015-06-15",
     "artifactsLocation": "https://raw.githubusercontent.com/pbuiMSFT/azure-quickstart-templates/master/201-vm-dynamicdisks-domainjoin/vm_dynamicdisks_domainjoin/vm_dynamicdisks_domainjoin/Templates/",
-    "sizeOfDataDisksInGB": 1023,
-    "vmStorageAccountContainerName": "vhds",
-    "diskCaching": "ReadWrite",
     "location": "[resourceGroup().location]",
+    "vmStorageAccountContainerName": "vhds",
+    "sizeOfDataDisksInGB": 1023,
+    "diskCaching": "ReadWrite",
     "imagePublisher": "MicrosoftWindowsServer",
     "imageOffer": "WindowsServer",
     "OSDiskName": "[concat(parameters('vmNamePrefix'),'-osdisk')]",
-    "scriptFileUri": "[concat(variables('artifactsLocation'), parameters('scriptName'))]",
     "nicName": "[concat(parameters('vmNamePrefix'),'-nic01')]",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('existingVNetName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('subnetName'))]",
-    "apiVersion": "2015-06-15"
+    "windosOSVersionCustomScriptFile": {
+      "2008-R2-SP1": {
+        "scriptfileUri": "https://raw.githubusercontent.com/pbuiMSFT/azure-quickstart-templates/master/201-vm-dynamicdisks-domainjoin/vm_dynamicdisks_domainjoin/vm_dynamicdisks_domainjoin/Templates/windows2008r2.ps1",
+        "scriptfileName": "windows2008r2.ps1"
+      },
+      "2012-Datacenter": {
+        "scriptfileUri": "https://raw.githubusercontent.com/pbuiMSFT/azure-quickstart-templates/master/201-vm-dynamicdisks-domainjoin/vm_dynamicdisks_domainjoin/vm_dynamicdisks_domainjoin/Templates/windows2012.ps1",
+        "scriptfileName": "windows2012.ps1"
+      },
+      "2012-R2-Datacenter": {
+        "scriptfileUri": "https://raw.githubusercontent.com/pbuiMSFT/azure-quickstart-templates/master/201-vm-dynamicdisks-domainjoin/vm_dynamicdisks_domainjoin/vm_dynamicdisks_domainjoin/Templates/windows2012r2.ps1",
+        "scriptfileName": "windows2012r2.ps1"
+      }
+    },
+    "currentOSSettings": "[variables('windosOSVersionCustomScriptFile')[parameters('windowsOSVersion')]]",
+    "scriptfileUri": "[variables('currentOSSettings').scriptfileUri]",
+    "scriptfileName": "[variables('currentOSSettings').scriptfileName]"
   },
   "resources": [
     {
@@ -323,9 +327,9 @@
         "typeHandlerVersion": "1.4",
         "settings": {
           "fileUris": [
-            "https://raw.githubusercontent.com/pbuiMSFT/azure-quickstart-templates/master/201-vm-dynamicdisks-domainjoin/vm_dynamicdisks_domainjoin/vm_dynamicdisks_domainjoin/Templates/windows2012r2.ps1"
+            "[variables('scriptfileUri')]"
           ],
-          "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File windows2012r2.ps1"
+          "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File ',variables('scriptfileName'))]"
         }
       }
     },
