@@ -22,3 +22,5 @@ New-StoragePool –FriendlyName $storagePoolName –StorageSubsystemFriendlyName
 $disks = Get-StoragePool –FriendlyName $storagePoolName -IsPrimordial $false | Get-PhysicalDisk
 New-VirtualDisk –FriendlyName $vDiskName -ResiliencySettingName Simple –NumberOfColumns ($disks.Count) –UseMaximumSize –Interleave 256KB –StoragePoolFriendlyName $storagePoolName
 Get-VirtualDisk –FriendlyName $vDiskName | Get-Disk | Initialize-Disk –Passthru | New-Partition –AssignDriveLetter –UseMaximumSize | Format-Volume –AllocationUnitSize $allocationSize 
+
+new-item -path C:\temp\ -name "windows2012r2.txt" -itemtype "file" -value "Windows 2012 R2 Script Executed"
