@@ -294,7 +294,6 @@
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmNamePrefix'))]"
-
       ],
       "properties": {
         "publisher": "Microsoft.Compute",
@@ -314,7 +313,7 @@
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(parameters('vmNamePrefix'),'/CustomScriptExtension')]",
-      "apiVersion": "2015-05-01-preview",
+      "apiVersion": "[variables('apiVersion')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "[concat('Microsoft.Compute/virtualMachines/',parameters('vmNamePrefix'))]",
@@ -336,7 +335,7 @@
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(parameters('vmNamePrefix'),'/Symantec')]",
-      "apiVersion": "2015-05-01-preview",
+      "apiVersion": "[variables('apiVersion')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmNamePrefix'))]"
@@ -346,6 +345,23 @@
         "type": "SymantecEndpointProtection",
         "typeHandlerVersion": "12.1",
         "settings": null,
+        "protectedSettings": null
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('vmNamePrefix'),'/BGInfo')]",
+      "apiVersion": "[variables('apiVersion')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmNamePrefix'))]",
+        "[concat('Microsoft.Compute/virtualMachines/',parameters('vmNamePrefix'),'/extensions/CustomScriptExtension')]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "BGInfo",
+        "typeHandlerVersion": "2.1",
+        "settings": { },
         "protectedSettings": null
       }
     }
