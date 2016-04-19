@@ -74,7 +74,7 @@
       }
     },
     "vmSize": {
-      "defaultValue": "Standard_A3",
+      "defaultValue": "Standard_D2",
       "type": "string",
       "allowedValues": [
         "Standard_A3",
@@ -86,6 +86,7 @@
         "Standard_A9",
         "Standard_A10",
         "Standard_A11",
+        "Standard_D2",
         "Standard_D3",
         "Standard_D4",
         "Standard_D12",
@@ -289,6 +290,7 @@
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmNamePrefix'))]"
+
       ],
       "properties": {
         "publisher": "Microsoft.Compute",
@@ -311,17 +313,37 @@
       "apiVersion": "2015-05-01-preview",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmNamePrefix'))]"
+        "[concat('Microsoft.Compute/virtualMachines/',parameters('vmNamePrefix'))]",
+        "[concat('Microsoft.Compute/virtualMachines/',parameters('vmNamePrefix'),'/extensions/joindomain')]",
+        "[concat('Microsoft.Compute/virtualMachines/',parameters('vmNamePrefix'),'/extensions/Symantec')]"
       ],
       "properties": {
         "publisher": "Microsoft.Compute",
         "type": "CustomScriptExtension",
         "typeHandlerVersion": "1.4",
         "settings": {
-          "fileUris": [ "[variables('scriptFileUri')]" ],
-          "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -file ',parameters('scriptName'))]"
+          "fileUris": [
+            "https://raw.githubusercontent.com/pbuiMSFT/azure-quickstart-templates/master/201-vm-dynamicdisks-domainjoin/vm_dynamicdisks_domainjoin/vm_dynamicdisks_domainjoin/Templates/windows2012r2.ps1"
+          ],
+          "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File windows2012r2.ps1"
         }
-      },
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('vmNamePrefix'),'/Symantec')]",
+      "apiVersion": "2015-05-01-preview",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmNamePrefix'))]"
+      ],
+      "properties": {
+        "publisher": "Symantec",
+        "type": "SymantecEndpointProtection",
+        "typeHandlerVersion": "12.1",
+        "settings": null,
+        "protectedSettings": null
+      }
     }
   ]
 }
