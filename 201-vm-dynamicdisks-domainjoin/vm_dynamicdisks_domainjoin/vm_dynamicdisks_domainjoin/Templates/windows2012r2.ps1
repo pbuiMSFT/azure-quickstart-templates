@@ -38,11 +38,6 @@ Disable-InternetExplorerESC
 "Disable Firewall windows 2012"
 Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False
 
-"Install chocolatey"
-#(iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1')))>$null 2>&1
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "((new-object net.webclient).DownloadFile('https://chocolatey.org/install.ps1','c:\temp\install.ps1'))"
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& 'c:\temp\install.ps1'"
-
 "Create Storage Pools"
 $storagePoolName = "StoragePool"
 $storageSubName = "Storage Spaces*"
