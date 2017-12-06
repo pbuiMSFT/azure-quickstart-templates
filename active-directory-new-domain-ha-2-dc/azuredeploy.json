@@ -21,11 +21,80 @@
         "description": "The FQDN of the AD Domain created "
       }
     },
+    "netbiosName": {
+      "type": "string",
+      "metadata": {
+        "description": "The netbios name of the AD Domain created "
+      }
+    },
     "vmPrefix": {
       "type": "string",
       "metadata": {
         "description": "Company prefix to append to VMs. IE. LMK, HAL"
       }
+    },
+    "adPDCNicIPAddress": {
+      "type": "string",
+      "metadata": {
+        "description": "PDC IP Address"
+      },
+      "defaultValue": "10.127.90.4"
+    },
+    "adBDCNicIPAddress": {
+      "type": "string",
+      "metadata": {
+        "description": "BackupDC IP Address"
+      },
+      "defaultValue": "10.127.90.5"
+    },
+    "virtualNetworkName": {
+      "type": "string",
+      "metadata": {
+        "description": "Virtual Network Name"
+      },
+      "defaultValue": "-vnet"
+    },
+    "virtualNetworkAddressRange": {
+      "type": "string",
+      "metadata": {
+        "description": "Virtual Network CIDR Range"
+      },
+      "defaultValue": "10.127.90.0/24"
+    },
+    "computeSubnetRange": {
+      "type": "string",
+      "metadata": {
+        "description": "Subnet CIDR Range"
+      },
+      "defaultValue": "10.127.90.0/24"
+    },
+    "storageSubnetRange": {
+      "type": "string",
+      "metadata": {
+        "description": "Subnet CIDR Range"
+      },
+      "defaultValue": "10.127.91.0/25"
+    },
+    "infraSubnetRange": {
+      "type": "string",
+      "metadata": {
+        "description": "Subnet CIDR Range"
+      },
+      "defaultValue": "10.127.91.128/26"
+    },
+    "appGatewaySubnetRange": {
+      "type": "string",
+      "metadata": {
+        "description": "Subnet CIDR Range"
+      },
+      "defaultValue": "10.127.91.192/27"
+    },
+    "GatewaySubnetRange": {
+      "type": "string",
+      "metadata": {
+        "description": "Subnet CIDR Range"
+      },
+      "defaultValue": "10.127.91.224/27"
     },
     "_artifactsLocation": {
       "type": "string",
@@ -50,23 +119,16 @@
     "imageSKU": "2016-Datacenter",
     "adAvailabilitySetName": "[concat(parameters('vmPrefix'),'dc-as')]",
     "adVMSize": "Standard_DS2_v2",
-    "virtualNetworkName": "[concat(parameters('vmPrefix'),'-vnet01')]",
-    "virtualNetworkAddressRange": "10.127.90.0/23",
     "computeSubnetName": "computeSubnet",
-    "computeSubnetRange": "10.127.90.0/24",
     "storageSubnetName": "storageSubnet",
-    "storageSubnetRange": "10.127.91.0/25",
     "infraSubnetName": "infraSubnet",   
-    "infraSubnetRange": "10.127.91.128/26",
     "appGatewaySubnetName": "appGatewaySubnet",
-    "appGatewaySubnetRange": "10.127.91.192/27",
     "GatewaySubnetName": "GatewaySubnet",
-    "GatewaySubnetRange": "10.127.91.224/27",
     "adPDCNicName": "[concat(parameters('vmPrefix'), 'dc-1-nic')]",
-    "adPDCNicIPAddress": "10.127.90.4",
+    
     "adBDCNicName": "[concat(parameters('vmPrefix'), 'dc-2-nic')]",
-    "adBDCNicIPAddress": "10.127.90.5",
-    "computeSubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('computeSubnetName'))]",
+    
+    "computeSubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), variables('computeSubnetName'))]",
     "adDataDiskSize": 32,
     "vnetTemplateUri": "[concat(parameters('_artifactsLocation'),'/nestedtemplates/vnet.json', parameters('_artifactsLocationSasToken'))]",
     "nicTemplateUri": "[concat(parameters('_artifactsLocation'),'/nestedtemplates/nic.json', parameters('_artifactsLocationSasToken'))]",
@@ -84,6 +146,13 @@
       "name": "[variables('adAvailabilitySetName')]",
       "type": "Microsoft.Compute/availabilitySets",
       "apiVersion": "2016-04-30-preview",
+      "properties": {
+        "PlatformUpdateDomainCount": 2,
+        "PlatformFaultDomainCount": 2
+    },
+    "sku": {
+        "name": "Aligned"
+    },
       "location": "[resourceGroup().location]"
     },
     {
@@ -98,40 +167,40 @@
         },
         "parameters": {
           "virtualNetworkName": {
-            "value": "[variables('virtualNetworkName')]"
+            "value": "[parameters('virtualNetworkName')]"
           },
           "virtualNetworkAddressRange": {
-            "value": "[variables('virtualNetworkAddressRange')]"
+            "value": "[parameters('virtualNetworkAddressRange')]"
           },
           "computeSubnetName": {
             "value": "[variables('computeSubnetName')]"
           },
           "computeSubnetRange": {
-            "value": "[variables('computeSubnetRange')]"
+            "value": "[parameters('computeSubnetRange')]"
           },
           "storageSubnetName": {
             "value": "[variables('storageSubnetName')]"
           },
           "storageSubnetRange": {
-            "value": "[variables('storageSubnetRange')]"
+            "value": "[parameters('storageSubnetRange')]"
           },
           "infraSubnetName": {
             "value": "[variables('infraSubnetName')]"
           },
           "InfraSubnetRange": {
-            "value": "[variables('InfraSubnetRange')]"
+            "value": "[parameters('InfraSubnetRange')]"
           },
           "appGatewaySubnetName": {
             "value": "[variables('appGatewaySubnetName')]"
           },
           "appGatewaySubnetRange": {
-            "value": "[variables('appGatewaySubnetRange')]"
+            "value": "[parameters('appGatewaySubnetRange')]"
           },
           "GatewaySubnetName": {
             "value": "[variables('GatewaySubnetName')]"
-          },
+          }, 
           "GatewaySubnetRange": {
-            "value": "[variables('GatewaySubnetRange')]"
+            "value": "[parameters('GatewaySubnetRange')]"
           }
         }
       }
@@ -150,7 +219,7 @@
             "name": "ipconfig1",
             "properties": {
               "privateIPAllocationMethod": "Static",
-              "privateIPAddress": "[variables('adPDCNicIPAddress')]",
+              "privateIPAddress": "[parameters('adPDCNicIPAddress')]",
               "subnet": {
                 "id": "[variables('computeSubnetRef')]"
               }
@@ -173,7 +242,7 @@
             "name": "ipconfig1",
             "properties": {
               "privateIPAllocationMethod": "Static",
-              "privateIPAddress": "[variables('adBDCNicIPAddress')]",
+              "privateIPAddress": "[parameters('adBDCNicIPAddress')]",
               "subnet": {
                 "id": "[variables('computeSubnetRef')]"
               }
@@ -258,6 +327,7 @@
               "ConfigurationFunction": "[variables('adPDCConfigurationFunction')]",
               "Properties": {
                 "DomainName": "[parameters('domainName')]",
+                "NetBiosName": "[parameters('netBiosName')]",
                 "AdminCreds": {
                   "UserName": "[parameters('adminUsername')]",
                   "Password": "PrivateSettingsRef:AdminPassword"
@@ -288,44 +358,44 @@
         },
         "parameters": {
           "virtualNetworkName": {
-            "value": "[variables('virtualNetworkName')]"
+            "value": "[parameters('virtualNetworkName')]"
           },
           "virtualNetworkAddressRange": {
-            "value": "[variables('virtualNetworkAddressRange')]"
+            "value": "[parameters('virtualNetworkAddressRange')]"
           },
           "computeSubnetName": {
             "value": "[variables('computeSubnetName')]"
           },
           "computeSubnetRange": {
-            "value": "[variables('computeSubnetRange')]"
+            "value": "[parameters('computeSubnetRange')]"
           },
           "storageSubnetName": {
             "value": "[variables('storageSubnetName')]"
           },
           "storageSubnetRange": {
-            "value": "[variables('storageSubnetRange')]"
+            "value": "[parameters('storageSubnetRange')]"
           },
           "infraSubnetName": {
             "value": "[variables('infraSubnetName')]"
           },
           "InfraSubnetRange": {
-            "value": "[variables('InfraSubnetRange')]"
+            "value": "[parameters('InfraSubnetRange')]"
           },
           "appGatewaySubnetName": {
             "value": "[variables('appGatewaySubnetName')]"
           },
           "appGatewaySubnetRange": {
-            "value": "[variables('appGatewaySubnetRange')]"
+            "value": "[parameters('appGatewaySubnetRange')]"
           },
           "GatewaySubnetName": {
             "value": "[variables('GatewaySubnetName')]"
           },
           "GatewaySubnetRange": {
-            "value": "[variables('GatewaySubnetRange')]"
+            "value": "[parameters('GatewaySubnetRange')]"
           },
           "DNSServerAddress": {
             "value": [
-              "[variables('adPDCNicIPAddress')]"
+              "[parameters('adPDCNicIPAddress')]"
             ]
           }
         }
@@ -355,7 +425,7 @@
                 "name": "ipconfig1",
                 "properties": {
                   "privateIPAllocationMethod": "Static",
-                  "privateIPAddress": "[variables('adBDCNicIPAddress')]",
+                  "privateIPAddress": "[parameters('adBDCNicIPAddress')]",
                   "subnet": {
                     "id": "[variables('computeSubnetRef')]"
                   }
@@ -365,7 +435,7 @@
           },
           "dnsServers": {
             "value": [
-              "[variables('adPDCNicIPAddress')]"
+              "[parameters('adPDCNicIPAddress')]"
             ]
           }
         }
@@ -446,7 +516,7 @@
           "ModulesUrl": "[variables('adBDCPreparationModulesURL')]",
           "ConfigurationFunction": "[variables('adBDCPreparationFunction')]",
           "Properties": {
-            "DNSServer": "[variables('adPDCNicIPAddress')]"
+            "DNSServer": "[parameters('adPDCNicIPAddress')]"
           }
         }
       }
@@ -505,45 +575,45 @@
         },
         "parameters": {
           "virtualNetworkName": {
-            "value": "[variables('virtualNetworkName')]"
+            "value": "[parameters('virtualNetworkName')]"
           },
           "virtualNetworkAddressRange": {
-            "value": "[variables('virtualNetworkAddressRange')]"
+            "value": "[parameters('virtualNetworkAddressRange')]"
           },
           "computeSubnetName": {
             "value": "[variables('computeSubnetName')]"
           },
           "computeSubnetRange": {
-            "value": "[variables('computeSubnetRange')]"
+            "value": "[parameters('computeSubnetRange')]"
           },
           "storageSubnetName": {
             "value": "[variables('storageSubnetName')]"
           },
           "storageSubnetRange": {
-            "value": "[variables('storageSubnetRange')]"
+            "value": "[parameters('storageSubnetRange')]"
           },
           "infraSubnetName": {
             "value": "[variables('infraSubnetName')]"
           },
           "InfraSubnetRange": {
-            "value": "[variables('InfraSubnetRange')]"
+            "value": "[parameters('InfraSubnetRange')]"
           },
           "appGatewaySubnetName": {
             "value": "[variables('appGatewaySubnetName')]"
           },
           "appGatewaySubnetRange": {
-            "value": "[variables('appGatewaySubnetRange')]"
+            "value": "[parameters('appGatewaySubnetRange')]"
           },
           "GatewaySubnetName": {
             "value": "[variables('GatewaySubnetName')]"
           },
           "GatewaySubnetRange": {
-            "value": "[variables('GatewaySubnetRange')]"
+            "value": "[parameters('GatewaySubnetRange')]"
           },
           "DNSServerAddress": {
             "value": [
-              "[variables('adPDCNicIPAddress')]",
-              "[variables('adBDCNicIPAddress')]"
+              "[parameters('adPDCNicIPAddress')]",
+              "[parameters('adBDCNicIPAddress')]"
             ]
           }
         }

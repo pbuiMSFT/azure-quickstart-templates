@@ -6,6 +6,9 @@
         [String]$DomainName,
 
         [Parameter(Mandatory)]
+        [String]$netbiosName,
+
+        [Parameter(Mandatory)]
         [System.Management.Automation.PSCredential]$Admincreds,
 
         [Int]$RetryCount=20,
@@ -93,6 +96,7 @@
         xADDomain FirstDS
         {
             DomainName = $DomainName
+            DomainNetBIOSName = $netbiosName
             DomainAdministratorCredential = $DomainCreds
             SafemodeAdministratorPassword = $DomainCreds
             DatabasePath = "F:\NTDS"
