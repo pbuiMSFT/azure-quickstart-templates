@@ -515,11 +515,35 @@
           "virtualNetworkAddressRange": {
             "value": "[variables('virtualNetworkAddressRange')]"
           },
-          "subnetName": {
+          "computeSubnetName": {
             "value": "[variables('computeSubnetName')]"
           },
-          "subnetRange": {
+          "computeSubnetRange": {
             "value": "[variables('computeSubnetRange')]"
+          },
+          "storageSubnetName": {
+            "value": "[variables('storageSubnetName')]"
+          },
+          "storageSubnetRange": {
+            "value": "[variables('storageSubnetRange')]"
+          },
+          "infraSubnetName": {
+            "value": "[variables('infraSubnetName')]"
+          },
+          "InfraSubnetRange": {
+            "value": "[variables('InfraSubnetRange')]"
+          },
+          "appGatewaySubnetName": {
+            "value": "[variables('appGatewaySubnetName')]"
+          },
+          "appGatewaySubnetRange": {
+            "value": "[variables('appGatewaySubnetRange')]"
+          },
+          "GatewaySubnetName": {
+            "value": "[variables('GatewaySubnetName')]"
+          },
+          "GatewaySubnetRange": {
+            "value": "[variables('GatewaySubnetRange')]"
           },
           "DNSServerAddress": {
             "value": [
