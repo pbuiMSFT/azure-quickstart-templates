@@ -132,11 +132,6 @@
           },
           "GatewaySubnetRange": {
             "value": "[variables('GatewaySubnetRange')]"
-          },
-          "DNSServerAddress": {
-            "value": [
-              "[variables('adPDCNicIPAddress')]"
-            ]
           }
         }
       }
