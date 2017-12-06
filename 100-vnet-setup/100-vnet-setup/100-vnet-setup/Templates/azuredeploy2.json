@@ -1,0 +1,63 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-",
+  "01/deploymentTemplate.json#\",": null,
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "virtualNetworks_vNet_ETEStaging_SCUS01_name": {
+      "defaultValue": "vNet-ETEStaging-SCUS01",
+      "type": "String"
+    }
+  },
+
+  "variables": { },
+  "resources": [
+    {
+      "comments": "Generalized from resource: '/subscriptions/a0dfae5b-0aee-",
+      "401d-904a-e7658a939632/resourceGroups/RG-ETEStaging-" "Network/providers/Microsoft.Network/virtualNetworks/vNet-ETEStaging-SCUS01'.\",",
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[parameters('virtualNetworks_vNet_ETEStaging_SCUS01_name')]",
+      "apiVersion": "2015-06-15",
+      "location": "southcentralus",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "10.56.0.0/21"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "sNet-ETEStaging-SCUS01-DMZ01",
+            "properties": {
+              "addressPrefix": "10.56.0.0/24"
+            }
+          },
+          {
+            "name": "sNet-ETEStaging-SCUS01-Secure",
+            "properties": {
+              "addressPrefix": "10.56.1.0/24"
+            }
+          },
+          {
+            "name": "sNet-ETEStaging-SCUS01-Internal01",
+            "properties": {
+              "addressPrefix": "10.56.2.0/23"
+            }
+          },
+          {
+            "name": "sNet-ETEStaging-SCUS01-Internal02",
+            "properties": {
+              "addressPrefix": "10.56.4.0/23"
+            }
+          },
+          {
+            "name": "GatewaySubnet",
+            "properties": {
+              "addressPrefix": "10.56.7.240/28"
+            }
+          }
+        ]
+      },
+      "dependsOn": [ ]
+    }
+  ]
+}

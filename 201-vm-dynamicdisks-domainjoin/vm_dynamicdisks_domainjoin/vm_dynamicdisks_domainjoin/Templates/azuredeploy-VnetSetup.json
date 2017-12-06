@@ -89,7 +89,8 @@
       "defaultValue": "fobnet_arm_citrixdemo_vnet",
       "type": "string",
       "allowedValues": [
-        "fobnet_arm_citrixdemo_vnet"
+        "fobnet_arm_citrixdemo_vnet",
+        "ARM_GEN_DEMO_VNET"
       ],
       "metadata": {
         "description": "Existing Virtual Network Name"
@@ -145,39 +146,7 @@
       "metadata": {
         "description": "This parameter allows the user to select the number of disks they want"
       }
-    },
-      "NEWstgType": {
-          "type": "string",
-          "defaultValue": "Standard_LRS",
-          "allowedValues": [
-              "Standard_LRS",
-              "Standard_ZRS",
-              "Standard_GRS",
-              "Standard_RAGRS",
-              "Premium_LRS"
-          ]
-      },
-      "VMWAREVMNAME2Name": {
-          "type": "string",
-          "minLength": 1
-      },
-      "VMWAREVMNAME2AdminUserName": {
-          "type": "string",
-          "minLength": 1
-      },
-      "VMWAREVMNAME2AdminPassword": {
-          "type": "securestring"
-      },
-      "VMWAREVMNAME2WindowsOSVersion": {
-          "type": "string",
-          "defaultValue": "2012-R2-Datacenter",
-          "allowedValues": [
-              "2008-R2-SP1",
-              "2012-Datacenter",
-              "2012-R2-Datacenter",
-              "Windows-Server-Technical-Preview"
-          ]
-      }
+    }
   },
   "variables": {
     "apiVersion": "2015-06-15",
@@ -190,8 +159,19 @@
     "imageOffer": "WindowsServer",
     "OSDiskName": "[concat(parameters('vmNamePrefix'),'-osdisk')]",
     "nicName": "[concat(parameters('vmNamePrefix'),'-nic01')]",
-    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('existingVNetName'))]",
-    "subnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('subnetName'))]",
+    "vnetResourceGroupSettings": {
+      "fobnet_arm_citrixdemo_vnet": {
+        "existingVnetRgName": "arm_citrixdemo"
+      },
+      "ARM_GEN_DEMO_VNET": {
+        "existingVnetRgName": "ARM_GEN_DEMO,"
+      }
+    },
+    "currentVnetResourceGroupSettings": "[variables('vnetResourceGroupSettings')[parameters('existingVnetName')]]",
+    "existingVnetRgName": "[variables('currentVnetResourceGroupSettings').existingVnetRgName]",
+    "vnetId": "[resourceId(variables('existingVnetRgName'),'Microsoft.Network/virtualNetworks', parameters('existingVnetName'))]",
+    "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('subnetName'))]",
+
     "windosOSVersionCustomScriptFile": {
       "2008-R2-SP1": {
         "scriptfileUri": "https://raw.githubusercontent.com/pbuiMSFT/azure-quickstart-templates/master/201-vm-dynamicdisks-domainjoin/vm_dynamicdisks_domainjoin/vm_dynamicdisks_domainjoin/Templates/windows2008r2.ps1",
@@ -208,21 +188,7 @@
     },
     "currentOSSettings": "[variables('windosOSVersionCustomScriptFile')[parameters('windowsOSVersion')]]",
     "scriptfileUri": "[variables('currentOSSettings').scriptfileUri]",
-    "scriptfileName": "[variables('currentOSSettings').scriptfileName]",
-      "NEWstgName": "[concat('NEWstg', uniqueString(resourceGroup().id))]",
-      "nEWvNETPrefix": "10.0.0.0/16",
-      "nEWvNETSubnet1Name": "Subnet-1",
-      "nEWvNETSubnet1Prefix": "10.0.0.0/24",
-      "nEWvNETSubnet2Name": "Subnet-2",
-      "nEWvNETSubnet2Prefix": "10.0.1.0/24",
-      "VMWAREVMNAME2ImagePublisher": "MicrosoftWindowsServer",
-      "VMWAREVMNAME2ImageOffer": "WindowsServer",
-      "VMWAREVMNAME2OSDiskName": "VMWAREVMNAME2OSDisk",
-      "VMWAREVMNAME2VmSize": "Standard_D1",
-      "VMWAREVMNAME2VnetID": "[resourceId('Microsoft.Network/virtualNetworks', 'nEWvNET')]",
-      "VMWAREVMNAME2SubnetRef": "[concat(variables('VMWAREVMNAME2VnetID'), '/subnets/', variables('nEWvNETSubnet1Name'))]",
-      "VMWAREVMNAME2StorageAccountContainerName": "vhds",
-      "VMWAREVMNAME2NicName": "[concat(parameters('VMWAREVMNAME2Name'), 'NetworkInterface')]"
+    "scriptfileName": "[variables('currentOSSettings').scriptfileName]"
   },
   "resources": [
     {
@@ -253,12 +219,6 @@
           }
         }
       }
-    },
-    {
-      "type": "Microsoft.Storage/storageAccounts",
-      "name": "mYSTRORAGEACCTNAME",
-      "apiVersion": "[variables('apiVersion')]",
-      "location": "[resourceGroup().location]"
     },
     {
       "type": "Microsoft.Network/networkInterfaces",
@@ -327,7 +287,6 @@
         }
       },
       "dependsOn": [
-        "[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]",
         "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]",
         "[concat('Microsoft.Resources/deployments/', 'diskSelection')]"
       ]
@@ -409,121 +368,6 @@
         "settings": { },
         "protectedSettings": null
       }
-    },
-      {
-          "name": "[variables('NEWstgName')]",
-          "type": "Microsoft.Storage/storageAccounts",
-          "location": "[resourceGroup().location]",
-          "apiVersion": "2015-06-15",
-          "dependsOn": [ ],
-          "tags": {
-              "displayName": "NEWstg"
-          },
-          "properties": {
-              "accountType": "[parameters('NEWstgType')]"
-          }
-      },
-      {
-          "name": "nEWvNET",
-          "type": "Microsoft.Network/virtualNetworks",
-          "location": "[resourceGroup().location]",
-          "apiVersion": "2015-06-15",
-          "dependsOn": [ ],
-          "tags": {
-              "displayName": "nEWvNET"
-          },
-          "properties": {
-              "addressSpace": {
-                  "addressPrefixes": [
-                      "[variables('nEWvNETPrefix')]"
-                  ]
-              },
-              "subnets": [
-                  {
-                      "name": "[variables('nEWvNETSubnet1Name')]",
-                      "properties": {
-                          "addressPrefix": "[variables('nEWvNETSubnet1Prefix')]"
-                      }
-                  },
-                  {
-                      "name": "[variables('nEWvNETSubnet2Name')]",
-                      "properties": {
-                          "addressPrefix": "[variables('nEWvNETSubnet2Prefix')]"
-                      }
-                  }
-              ]
-          }
-      },
-      {
-          "name": "[variables('VMWAREVMNAME2NicName')]",
-          "type": "Microsoft.Network/networkInterfaces",
-          "location": "[resourceGroup().location]",
-          "apiVersion": "2015-06-15",
-          "dependsOn": [
-              "[concat('Microsoft.Network/virtualNetworks/', 'nEWvNET')]"
-          ],
-          "tags": {
-              "displayName": "VMWAREVMNAME2Nic"
-          },
-          "properties": {
-              "ipConfigurations": [
-                  {
-                      "name": "ipconfig1",
-                      "properties": {
-                          "privateIPAllocationMethod": "Dynamic",
-                          "subnet": {
-                              "id": "[variables('VMWAREVMNAME2SubnetRef')]"
-                          }
-                      }
-                  }
-              ]
-          }
-      },
-      {
-          "name": "[parameters('VMWAREVMNAME2Name')]",
-          "type": "Microsoft.Compute/virtualMachines",
-          "location": "[resourceGroup().location]",
-          "apiVersion": "2015-06-15",
-          "dependsOn": [
-              "[concat('Microsoft.Storage/storageAccounts/', variables('NEWstgName'))]",
-              "[concat('Microsoft.Network/networkInterfaces/', variables('VMWAREVMNAME2NicName'))]"
-          ],
-          "tags": {
-              "displayName": "VMWAREVMNAME2"
-          },
-          "properties": {
-              "hardwareProfile": {
-                  "vmSize": "[variables('VMWAREVMNAME2VmSize')]"
-              },
-              "osProfile": {
-                  "computerName": "[parameters('VMWAREVMNAME2Name')]",
-                  "adminUsername": "[parameters('VMWAREVMNAME2AdminUsername')]",
-                  "adminPassword": "[parameters('VMWAREVMNAME2AdminPassword')]"
-              },
-              "storageProfile": {
-                  "imageReference": {
-                      "publisher": "[variables('VMWAREVMNAME2ImagePublisher')]",
-                      "offer": "[variables('VMWAREVMNAME2ImageOffer')]",
-                      "sku": "[parameters('VMWAREVMNAME2WindowsOSVersion')]",
-                      "version": "latest"
-                  },
-                  "osDisk": {
-                      "name": "VMWAREVMNAME2OSDisk",
-                      "vhd": {
-                          "uri": "[concat('http://', variables('NEWstgName'), '.blob.core.windows.net/', variables('VMWAREVMNAME2StorageAccountContainerName'), '/', variables('VMWAREVMNAME2OSDiskName'), '.vhd')]"
-                      },
-                      "caching": "ReadWrite",
-                      "createOption": "FromImage"
-                  }
-              },
-              "networkProfile": {
-                  "networkInterfaces": [
-                      {
-                          "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('VMWAREVMNAME2NicName'))]"
-                      }
-                  ]
-              }
-          }
-      }
+    }
   ]
 }

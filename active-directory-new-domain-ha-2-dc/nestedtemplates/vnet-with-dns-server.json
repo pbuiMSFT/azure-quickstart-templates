@@ -1,0 +1,145 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "virtualNetworkName": {
+      "type": "string",
+      "metadata": {
+        "Description": "The name of the Virtual Network to Create"
+      }
+    },
+    "virtualNetworkAddressRange": {
+      "type": "string",
+      "metadata": {
+        "Description": "The address range of the new VNET in CIDR format"
+      },
+      "defaultValue": "10.127.90.0/23"
+    },
+    "computeSubnetName": {
+      "type": "string",
+      "metadata": {
+        "Description": "The name of the subnet created in the new VNET"
+      },
+      "defaultValue": "computeSubnet"
+    },
+    "computeSubnetRange": {
+      "type": "string",
+      "metadata": {
+        "Description": "The address range of the subnet created in the new VNET"
+      },
+      "defaultValue": "10.127.90.0/24"
+    },
+    "storageSubnetName": {
+      "type": "string",
+      "metadata": {
+        "Description": "The name of the subnet created in the new VNET"
+      },
+      "defaultValue": "storageSubnet"
+    },
+    "storageSubnetRange": {
+      "type": "string",
+      "metadata": {
+        "Description": "The address range of the subnet created in the new VNET"
+      },
+      "defaultValue": "10.127.91.0/25"
+    },
+    "infraSubnetName": {
+      "type": "string",
+      "metadata": {
+        "Description": "The name of the subnet created in the new VNET"
+      },
+      "defaultValue": "infraSubnet"
+    },
+    "infraSubnetRange": {
+      "type": "string",
+      "metadata": {
+        "Description": "The address range of the subnet created in the new VNET"
+      },
+      "defaultValue": "10.127.91.128/26"
+    },
+    "appGatewaySubnetName": {
+      "type": "string",
+      "metadata": {
+        "Description": "The name of the subnet created in the new VNET"
+      },
+      "defaultValue": "appGatewaySubnet"
+    },
+    "appGatewaySubnetRange": {
+      "type": "string",
+      "metadata": {
+        "Description": "The address range of the subnet created in the new VNET"
+      },
+      "defaultValue": "10.127.91.192/27"
+    },
+    "GatewaySubnetName": {
+      "type": "string",
+      "metadata": {
+        "Description": "The name of the subnet created in the new VNET"
+      },
+      "defaultValue": "GatewaySubnet"
+    },
+    "GatewaySubnetRange": {
+      "type": "string",
+      "metadata": {
+        "Description": "The address range of the subnet created in the new VNET"
+      },
+      "defaultValue": "10.127.91.224/27"
+    },
+    "DNSServerAddress": {
+      "type": "array",
+      "metadata": {
+        "Description": "The DNS address(es) of the DNS Server(s) used by the VNET"
+      }
+    }
+  },
+  "resources": [
+    {
+      "name": "[parameters('virtualNetworkName')]",
+      "type": "Microsoft.Network/virtualNetworks",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-10-01",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[parameters('virtualNetworkAddressRange')]"
+          ]
+        },
+        "dhcpOptions": {
+          "dnsServers": "[parameters('DNSServerAddress')]"
+        },
+        "subnets": [
+          {
+            "name": "[parameters('computeSubnetName')]",
+            "properties": {
+              "addressPrefix": "[parameters('computeSubnetRange')]"
+            }
+          },
+          {
+            "name": "[parameters('storageSubnetName')]",
+            "properties": {
+              "addressPrefix": "[parameters('storageSubnetRange')]"
+            }
+          },
+          {
+            "name": "[parameters('infraSubnetName')]",
+            "properties": {
+              "addressPrefix": "[parameters('infraSubnetRange')]"
+            }
+          },
+          {
+            "name": "[parameters('appGatewaySubnetName')]",
+            "properties": {
+              "addressPrefix": "[parameters('appGatewaySubnetRange')]"
+            }
+          },
+          {
+            "name": "[parameters('GatewaySubnetName')]",
+            "properties": {
+              "addressPrefix": "[parameters('GatewaySubnetRange')]"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
