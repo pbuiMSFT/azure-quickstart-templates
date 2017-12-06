@@ -83,7 +83,7 @@
     {
       "name": "[variables('adAvailabilitySetName')]",
       "type": "Microsoft.Compute/availabilitySets",
-      "apiVersion": "2016-03-30",
+      "apiVersion": "2016-04-30-preview",
       "location": "[resourceGroup().location]"
     },
     {
@@ -185,7 +185,7 @@
     {
       "name": "[variables('adPDCVMName')]",
       "type": "Microsoft.Compute/virtualMachines",
-      "apiVersion": "2016-03-30",
+      "apiVersion": "2016-04-30-preview",
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "[resourceId('Microsoft.Network/networkInterfaces',variables('adPDCNicName'))]",
@@ -243,7 +243,7 @@
         {
           "name": "CreateADForest",
           "type": "extensions",
-          "apiVersion": "2016-03-30",
+          "apiVersion": "2016-04-30-preview",
           "location": "[resourceGroup().location]",
           "dependsOn": [
             "[resourceId('Microsoft.Compute/virtualMachines', variables('adPDCVMName'))]"
@@ -374,7 +374,7 @@
     {
       "name": "[variables('adBDCVMName')]",
       "type": "Microsoft.Compute/virtualMachines",
-      "apiVersion": "2016-03-30",
+      "apiVersion": "2016-04-30-preview",
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "[resourceId('Microsoft.Network/networkInterfaces',variables('adBDCNicName'))]",
@@ -432,7 +432,7 @@
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(variables('adBDCVMName'),'/PrepareBDC')]",
-      "apiVersion": "2016-03-30",
+      "apiVersion": "2016-04-30-preview",
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "[concat('Microsoft.Compute/virtualMachines/', variables('adBDCVMName'))]"
